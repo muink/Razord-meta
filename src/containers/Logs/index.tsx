@@ -1,9 +1,10 @@
 import dayjs from 'dayjs'
+import { camelCase } from 'lodash-es'
 import { useLayoutEffect, useEffect, useRef, useState } from 'react'
 
-import { Card, Header } from '@components'
+import { ButtonSelect, Card, Header } from '@components'
 import { Log } from '@models/Log'
-import { useI18n, useLogsStreamReader } from '@stores'
+import { useGeneral, useI18n, useLogsStreamReader } from '@stores'
 
 import './style.scss'
 
@@ -11,11 +12,27 @@ export default function Logs () {
     const listRef = useRef<HTMLUListElement>(null)
     const logsRef = useRef<Log[]>([])
     const [logs, setLogs] = useState<Log[]>([])
+    const { general } = useGeneral()
     const { translation } = useI18n()
     const { t } = translation('Logs')
     const logsStreamReader = useLogsStreamReader()
     const scrollHeightRef = useRef(listRef.current?.scrollHeight ?? 0)
-
+    const { logLevel } = general
+    const doRefresh = () => setRefresh(true)
+    const logLevelOptions = [
+        { label: ('Debug'), value: 'debug' },
+        { label: ('Info'), value: 'info' },
+        { label: ('Warn'), value: 'warning' },
+        { label: ('Error'), value: 'error' },
+        { label: ('Silent'), value: 'silent' },
+    ]
+    const logMap = new Map([
+        ['debug', 'text-teal-500'],
+        ['info', 'text-sky-500'],
+        ['warning', 'text-pink-500'],
+        ['error', 'text-rose-500'],
+    ])
+    const [refresh, setRefresh] = useState(false)
     useLayoutEffect(() => {
         const ul = listRef.current
         if (ul != null && scrollHeightRef.current === (ul.scrollTop + ul.clientHeight)) {
@@ -35,21 +52,32 @@ export default function Logs () {
             logsRef.current = logsStreamReader.buffer()
             setLogs(logsRef.current)
         }
-
+        refresh && setTimeout(() => setRefresh(false))
         return () => logsStreamReader?.unsubscribe('data', handleLog)
-    }, [logsStreamReader])
-
+    }, [logsStreamReader, refresh])
+    async function handleLogLevelChange (logLevel: string) {
+        general.logLevel = logLevel
+        doRefresh()
+    }
     return (
         <div className="page">
             <Header title={ t('title') } />
+            <div className="flex flex-col md:flex-row-reverse w-full py-3 px-8 items-center justify-between">
+                <ButtonSelect
+                    options={logLevelOptions}
+                    value={camelCase(logLevel)}
+                    onSelect={ handleLogLevelChange }
+                />
+            </div>
             <Card className="flex flex-col flex-1 mt-2.5 md:mt-4">
                 <ul className="logs-panel" ref={listRef}>
                     {
                         logs.map(
                             (log, index) => (
-                                <li className="leading-5 inline-block" key={index}>
-                                    <span className="mr-4 text-gray-400 text-opacity-90">{ dayjs(log.time).format('YYYY-MM-DD HH:mm:ss') }</span>
-                                    <span>[{ log.type }] { log.payload }</span>
+                                <li className="leading-5 inline-block text-[11px]" key={index}>
+                                    <span className="mr-2 text-orange-400">[{ dayjs(log.time).format('YYYY-MM-DD HH:mm:ss') }]</span>
+                                    <span className={logMap.get(log.type)}>[{ log.type.toUpperCase() }]</span>
+                                    <span> { log.payload }</span>
                                 </li>
                             ),
                         )
