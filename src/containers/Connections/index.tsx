@@ -7,7 +7,7 @@ import { useMemo, useLayoutEffect, useRef, useState, useEffect } from 'react'
 
 import { Header, Checkbox, Modal, Icon, Drawer, Card, Button } from '@components'
 import { fromNow } from '@lib/date'
-import { formatProcess, formatTraffic } from '@lib/helper'
+import { basePath, formatTraffic } from '@lib/helper'
 import { useObject, useVisible } from '@lib/hook'
 import * as API from '@lib/request'
 import { BaseComponentProps } from '@models'
@@ -105,7 +105,7 @@ export default function Connections () {
             table.createDataColumn(Columns.Type, { minWidth: 100, width: 100, header: t(`columns.${Columns.Type}`) }),
             table.createDataColumn(Columns.Chains, { minWidth: 200, width: 200, header: t(`columns.${Columns.Chains}`) }),
             table.createDataColumn(Columns.Rule, { minWidth: 140, width: 140, header: t(`columns.${Columns.Rule}`) }),
-            table.createDataColumn(Columns.Process, { minWidth: 100, width: 100, header: t(`columns.${Columns.Process}`), cell: cell => formatProcess(cell.value) }),
+            table.createDataColumn(Columns.Process, { minWidth: 100, width: 100, header: t(`columns.${Columns.Process}`), cell: cell => cell.value ? basePath(cell.value) : '-' }),
             table.createDataColumn(
                 row => [row.speed.upload, row.speed.download],
                 {
@@ -134,7 +134,7 @@ export default function Connections () {
                     width: 120,
                     header: t(`columns.${Columns.Time}`),
                     cell: cell => fromNow(new Date(cell.value), lang),
-                    sortType: (rowA, rowB) => (rowA.original?.time ?? 0) - (rowB.original?.time ?? 0),
+                    sortType: (rowA, rowB) => (rowB.original?.time ?? 0) - (rowA.original?.time ?? 0),
                 },
             ),
         ]),
@@ -166,7 +166,7 @@ export default function Connections () {
         sortRowsFn,
         columnFilterRowsFn,
         initialState: {
-            sorting: [{ id: Columns.Time, desc: true }],
+            sorting: [{ id: Columns.Time, desc: false }],
         },
         columnResizeMode: 'onChange',
         enableColumnResizing: true,
