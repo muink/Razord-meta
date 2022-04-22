@@ -8,31 +8,31 @@ import { useGeneral, useI18n, useLogsStreamReader } from '@stores'
 
 import './style.scss'
 
+const logLevelOptions = [
+    { label: 'Debug', value: 'debug' },
+    { label: 'Info', value: 'info' },
+    { label: 'Warn', value: 'warning' },
+    { label: 'Error', value: 'error' },
+    { label: 'Silent', value: 'silent' },
+]
+const logMap = new Map([
+    ['debug', 'text-teal-500'],
+    ['info', 'text-sky-500'],
+    ['warning', 'text-pink-500'],
+    ['error', 'text-rose-500'],
+])
+
 export default function Logs () {
     const listRef = useRef<HTMLUListElement>(null)
     const logsRef = useRef<Log[]>([])
     const [logs, setLogs] = useState<Log[]>([])
+    const [logchange, setLogchange] = useState(false)
     const { general } = useGeneral()
     const { translation } = useI18n()
     const { t } = translation('Logs')
     const logsStreamReader = useLogsStreamReader()
     const scrollHeightRef = useRef(listRef.current?.scrollHeight ?? 0)
     const { logLevel } = general
-    const doRefresh = () => setRefresh(true)
-    const logLevelOptions = [
-        { label: ('Debug'), value: 'debug' },
-        { label: ('Info'), value: 'info' },
-        { label: ('Warn'), value: 'warning' },
-        { label: ('Error'), value: 'error' },
-        { label: ('Silent'), value: 'silent' },
-    ]
-    const logMap = new Map([
-        ['debug', 'text-teal-500'],
-        ['info', 'text-sky-500'],
-        ['warning', 'text-pink-500'],
-        ['error', 'text-rose-500'],
-    ])
-    const [refresh, setRefresh] = useState(false)
     useLayoutEffect(() => {
         const ul = listRef.current
         if (ul != null && scrollHeightRef.current === (ul.scrollTop + ul.clientHeight)) {
@@ -52,12 +52,12 @@ export default function Logs () {
             logsRef.current = logsStreamReader.buffer()
             setLogs(logsRef.current)
         }
-        refresh && setTimeout(() => setRefresh(false))
         return () => logsStreamReader?.unsubscribe('data', handleLog)
-    }, [logsStreamReader, refresh])
+    }, [logsStreamReader, logchange])
+
     async function handleLogLevelChange (logLevel: string) {
         general.logLevel = logLevel
-        doRefresh()
+        setLogchange(!logchange)
     }
     return (
         <div className="page">
