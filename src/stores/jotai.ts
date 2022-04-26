@@ -249,25 +249,24 @@ const logsAtom = atom({
     instance: null as StreamReader<Log> | null,
 })
 
-export function useLogsStreamReader () {
+export function useLogsStreamReader (logLevel?: string) {
     const apiInfo = useAPIInfo()
-    const { general } = useGeneral()
     const version = useVersion()
     const [item, setItem] = useAtom(logsAtom)
 
-    if (!version.version || !general.logLevel) {
+    if (!version.version || !logLevel) {
         return null
     }
 
     const useWebsocket = !!version.version || true
-    const key = `${apiInfo.protocol}//${apiInfo.hostname}:${apiInfo.port}/logs?level=${general.logLevel ?? ''}&useWebsocket=${useWebsocket}&secret=${apiInfo.secret}`
+    const key = `${apiInfo.protocol}//${apiInfo.hostname}:${apiInfo.port}/logs?level=${logLevel ?? ''}&useWebsocket=${useWebsocket}&secret=${apiInfo.secret}`
     if (item.key === key) {
         return item.instance!
     }
 
     const oldInstance = item.instance
 
-    const logUrl = `${apiInfo.protocol}//${apiInfo.hostname}:${apiInfo.port}/logs?level=${general.logLevel ?? ''}`
+    const logUrl = `${apiInfo.protocol}//${apiInfo.hostname}:${apiInfo.port}/logs?level=${logLevel ?? ''}`
     const instance = new StreamReader<Log>({ url: logUrl, bufferLength: 200, token: apiInfo.secret, useWebsocket })
     setItem({ key, instance })
 

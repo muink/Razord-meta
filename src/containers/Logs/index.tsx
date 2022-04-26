@@ -26,13 +26,27 @@ export default function Logs () {
     const listRef = useRef<HTMLUListElement>(null)
     const logsRef = useRef<Log[]>([])
     const [logs, setLogs] = useState<Log[]>([])
-    const [logchange, setLogchange] = useState(false)
     const { general } = useGeneral()
+    const [logLevel, setLogLevel] = useState(general.logLevel)
     const { translation } = useI18n()
     const { t } = translation('Logs')
-    const logsStreamReader = useLogsStreamReader()
+    const logsStreamReader = useLogsStreamReader(logLevel)
     const scrollHeightRef = useRef(listRef.current?.scrollHeight ?? 0)
-    const { logLevel } = general
+
+    useEffect(() => {
+        try {
+            setLogLevel(localStorage.getItem('log-level')!)
+        } catch {}
+    }, [])
+
+    useEffect(() => {
+        try {
+            if (logLevel) {
+                localStorage.setItem('log-level', logLevel)
+            }
+        } catch {}
+    }, [logLevel])
+
     useLayoutEffect(() => {
         const ul = listRef.current
         if (ul != null && scrollHeightRef.current === (ul.scrollTop + ul.clientHeight)) {
@@ -53,22 +67,18 @@ export default function Logs () {
             setLogs(logsRef.current)
         }
         return () => logsStreamReader?.unsubscribe('data', handleLog)
-    }, [logsStreamReader, logchange])
+    }, [logsStreamReader])
 
-    async function handleLogLevelChange (logLevel: string) {
-        general.logLevel = logLevel
-        setLogchange(!logchange)
-    }
     return (
         <div className="page">
-            <Header title={ t('title') } />
-            <div className="flex flex-col md:flex-row-reverse w-full py-3 px-8 items-center justify-between">
+            <Header title={ t('title') } >
                 <ButtonSelect
                     options={logLevelOptions}
                     value={camelCase(logLevel)}
-                    onSelect={ handleLogLevelChange }
+                    onSelect={ setLogLevel }
                 />
-            </div>
+            </Header>
+
             <Card className="flex flex-col flex-1 mt-2.5 md:mt-4">
                 <ul className="logs-panel" ref={listRef}>
                     {
