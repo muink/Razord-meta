@@ -34,17 +34,10 @@ export default function Logs () {
     const scrollHeightRef = useRef(listRef.current?.scrollHeight ?? 0)
 
     useEffect(() => {
-        try {
-            setLogLevel(localStorage.getItem('log-level')!)
-        } catch {}
-    }, [])
-
-    useEffect(() => {
-        try {
-            if (logLevel) {
-                localStorage.setItem('log-level', logLevel)
-            }
-        } catch {}
+        if (logLevel) {
+            localStorage.setItem('log-level', logLevel)
+        }
+        setLogLevel(localStorage.getItem('log-level')!)
     }, [logLevel])
 
     useLayoutEffect(() => {
