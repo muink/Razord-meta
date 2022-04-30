@@ -4,11 +4,12 @@ import { useLayoutEffect, useEffect, useRef, useState } from 'react'
 
 import { ButtonSelect, Card, Header } from '@components'
 import { Log } from '@models/Log'
-import { useGeneral, useI18n, useLogsStreamReader } from '@stores'
+import { useConfig, useI18n, useLogsStreamReader } from '@stores'
 
 import './style.scss'
 
 const logLevelOptions = [
+    { label: 'Default', value: '' },
     { label: 'Debug', value: 'debug' },
     { label: 'Info', value: 'info' },
     { label: 'Warn', value: 'warning' },
@@ -26,19 +27,11 @@ export default function Logs () {
     const listRef = useRef<HTMLUListElement>(null)
     const logsRef = useRef<Log[]>([])
     const [logs, setLogs] = useState<Log[]>([])
-    const { general } = useGeneral()
-    const [logLevel, setLogLevel] = useState(general.logLevel)
     const { translation } = useI18n()
+    const { set: setConfig } = useConfig()
     const { t } = translation('Logs')
-    const logsStreamReader = useLogsStreamReader(logLevel)
+    const { instance: logsStreamReader, level: logLevel } = useLogsStreamReader()
     const scrollHeightRef = useRef(listRef.current?.scrollHeight ?? 0)
-
-    useEffect(() => {
-        if (logLevel) {
-            localStorage.setItem('log-level', logLevel)
-        }
-        setLogLevel(localStorage.getItem('log-level')!)
-    }, [logLevel])
 
     useLayoutEffect(() => {
         const ul = listRef.current
@@ -68,7 +61,7 @@ export default function Logs () {
                 <ButtonSelect
                     options={logLevelOptions}
                     value={camelCase(logLevel)}
-                    onSelect={ setLogLevel }
+                    onSelect={level => setConfig(c => { c.logLevel = level })}
                 />
             </Header>
 
