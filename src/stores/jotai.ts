@@ -269,7 +269,7 @@ export function useLogsStreamReader () {
         item.connect(logUrl)
     }, [apiInfoRef, item, levelRef, previousKey])
 
-    return { instance: item, level }
+    return item
 }
 
 export function useConnectionStreamReader () {
