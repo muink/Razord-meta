@@ -13,8 +13,6 @@ export class StreamReader<T> {
 
     protected innerBuffer: T[] = []
 
-    protected isClose = false
-
     protected url = ''
 
     protected connection: WebSocket | null = null
@@ -52,7 +50,7 @@ export class StreamReader<T> {
     }
 
     connect (url: string) {
-        if (this.url === url) {
+        if (this.url === url && this.connection) {
             return
         }
         this.url = url
@@ -75,6 +73,6 @@ export class StreamReader<T> {
     destory () {
         this.EE.removeAllListeners()
         this.connection?.close()
-        this.isClose = true
+        this.connection = null
     }
 }

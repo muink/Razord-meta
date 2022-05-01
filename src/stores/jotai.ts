@@ -1,4 +1,4 @@
-import { usePreviousDistinct, useSyncedRef } from '@react-hookz/web'
+import { usePreviousDistinct, useSyncedRef } from '@react-hookz/web/esm'
 import { AxiosError } from 'axios'
 import produce from 'immer'
 import { atom, useAtom, useAtomValue } from 'jotai'
@@ -259,15 +259,16 @@ export function useLogsStreamReader () {
         `${apiInfo.protocol}//${apiInfo.hostname}:${apiInfo.port}/logs?level=${level}&secret=${apiInfo.secret}`,
     )
 
-    const levelRef = useSyncedRef(level)
     const apiInfoRef = useSyncedRef(apiInfo)
 
     useEffect(() => {
-        const apiInfo = apiInfoRef.current
-        const protocol = apiInfo.protocol === 'http:' ? 'ws:' : 'wss:'
-        const logUrl = `${protocol}//${apiInfo.hostname}:${apiInfo.port}/logs?level=${levelRef.current}&token=${apiInfo.secret}`
-        item.connect(logUrl)
-    }, [apiInfoRef, item, levelRef, previousKey])
+        if (level) {
+            const apiInfo = apiInfoRef.current
+            const protocol = apiInfo.protocol === 'http:' ? 'ws:' : 'wss:'
+            const logUrl = `${protocol}//${apiInfo.hostname}:${apiInfo.port}/logs?level=${level}&token=${apiInfo.secret}`
+            item.connect(logUrl)
+        }
+    }, [apiInfoRef, item, level, previousKey])
 
     return item
 }
