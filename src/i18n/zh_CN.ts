@@ -41,6 +41,7 @@ const CN = {
     },
     Logs: {
         title: '日志',
+        levelLabel: '日志等级',
     },
     Rules: {
         title: '规则',
@@ -66,6 +67,7 @@ const CN = {
         columns: {
             host: '域名',
             network: '网络',
+            process: '进程',
             type: '类型',
             chains: '节点链',
             rule: '规则',
@@ -86,6 +88,8 @@ const CN = {
             upload: '上传',
             download: '下载',
             network: '网络',
+            process: '进程',
+            processPath: '路径',
             inbound: '入口',
             rule: '规则',
             chains: '代理',

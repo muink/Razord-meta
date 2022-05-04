@@ -2,13 +2,14 @@ import dayjs from 'dayjs'
 import { camelCase } from 'lodash-es'
 import { useLayoutEffect, useEffect, useRef, useState } from 'react'
 
-import { ButtonSelect, Card, Header } from '@components'
+import { Select, Card, Header } from '@components'
 import { Log } from '@models/Log'
-import { useGeneral, useI18n, useLogsStreamReader } from '@stores'
+import { useConfig, useI18n, useLogsStreamReader } from '@stores'
 
 import './style.scss'
 
 const logLevelOptions = [
+    { label: 'Default', value: '' },
     { label: 'Debug', value: 'debug' },
     { label: 'Info', value: 'info' },
     { label: 'Warn', value: 'warning' },
@@ -26,26 +27,11 @@ export default function Logs () {
     const listRef = useRef<HTMLUListElement>(null)
     const logsRef = useRef<Log[]>([])
     const [logs, setLogs] = useState<Log[]>([])
-    const { general } = useGeneral()
-    const [logLevel, setLogLevel] = useState(general.logLevel)
     const { translation } = useI18n()
+    const { data: { logLevel }, set: setConfig } = useConfig()
     const { t } = translation('Logs')
-    const logsStreamReader = useLogsStreamReader(logLevel)
+    const logsStreamReader = useLogsStreamReader()
     const scrollHeightRef = useRef(listRef.current?.scrollHeight ?? 0)
-
-    useEffect(() => {
-        try {
-            setLogLevel(localStorage.getItem('log-level')!)
-        } catch {}
-    }, [])
-
-    useEffect(() => {
-        try {
-            if (logLevel) {
-                localStorage.setItem('log-level', logLevel)
-            }
-        } catch {}
-    }, [logLevel])
 
     useLayoutEffect(() => {
         const ul = listRef.current
@@ -72,10 +58,11 @@ export default function Logs () {
     return (
         <div className="page">
             <Header title={ t('title') } >
-                <ButtonSelect
+                <span className="text-sm text-primary-darken mr-2">{t('levelLabel')}:</span>
+                <Select
                     options={logLevelOptions}
                     value={camelCase(logLevel)}
-                    onSelect={ setLogLevel }
+                    onSelect={level => setConfig(c => { c.logLevel = level })}
                 />
             </Header>
 
